@@ -53,7 +53,8 @@ public interface UserService extends IService<User> {
      */
     int userLogout(HttpServletRequest request);
 
-    /**根据标签查用户
+
+    /**在内存中查找
      *
      * @param tagNameList
      * @return

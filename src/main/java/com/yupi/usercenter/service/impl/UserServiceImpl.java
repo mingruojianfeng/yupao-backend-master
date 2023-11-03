@@ -3,7 +3,6 @@ package com.yupi.usercenter.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import com.yupi.usercenter.common.ErrorCode;
 import com.yupi.usercenter.exception.BusinessException;
@@ -15,17 +14,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
-import org.springframework.util.SystemPropertyUtils;
-import org.yaml.snakeyaml.tokens.TagToken;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.yupi.usercenter.contant.UserConstant.USER_LOGIN_STATE;
 
@@ -203,8 +201,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @param tagNameList
      * @return
      */
-    @Override
-    public List<User> searchUserByTags(List<String> tagNameList){
+    @Deprecated
+    private List<User> searchUserByTagsBySQL(List<String> tagNameList){
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -216,43 +214,37 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
         List<User> userList = userMapper.selectList(queryWrapper);
         return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
-//        if (CollectionUtils.isEmpty(tagNameList)) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//        userMapper.selectCount(null);
-//        long startTime = System.currentTimeMillis();
-//        //拼接 and 查询
-//        //like '%Java%' and like '%Python%'
-//        for (String tagName : tagNameList) {
-//            queryWrapper = queryWrapper.like("tags", tagName);
-//        }
-//        List<User> userList = userMapper.selectList(queryWrapper);
-////        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
-//        log.info("sql query time =" + (System.currentTimeMillis() - startTime));
-//        //1.先查询所有用户
-//        startTime = System.currentTimeMillis();
-//        queryWrapper = new QueryWrapper<>();
-//        userList = userMapper.selectList(queryWrapper);
-//        Gson gson = new Gson();
-//        //2.在内存中判断是否包含要求的标签
-//        userList.stream().filter(user -> {
-//            String tagsStr = user.getTags();
-//            if (StringUtils.isBlank(tagsStr)) {
-//                return false;
-//            }
-//            Set<String> tempTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
-//            }.getType());
-//            for (String tagName : tagNameList) {
-//                if (!tempTagNameSet.contains(tagName)) {
-//                    return false;
-//                }
-//            }
-//            return true;
-//        }).map(this::getSafetyUser).collect(Collectors.toList());
-//        log.info("menory query time =" + (System.currentTimeMillis() - startTime));
-//
-//        return userList;
+
+    }
+
+    /**根据标签查找用户（内存过滤 ）
+     *
+     * @param tagNameList
+     * @return
+     */
+    @Override
+    public List<User> searchUserByTags(List<String> tagNameList){
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //1.先查询所有用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        List<User> userList = userMapper.selectList(queryWrapper);
+        Gson gson = new Gson();
+        //2.在内存中判断是否包含要求的标签
+        return userList.stream().filter(user -> {
+            String tagsStr = user.getTags();
+            Set<String> tempTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
+            }.getType());
+            //判空
+            tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
+            for (String tagName : tagNameList) {
+                if (!tempTagNameSet.contains(tagName)) {
+                    return false;
+                }
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
     }
 }
 
