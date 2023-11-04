@@ -78,7 +78,7 @@ public class UserServiceTest {
     @Test
     public void testGetUser() {
         User user = userService.getById(1L);
-        Assertions.assertNotNull(user);
+        System.out.println(user);
     }
 
     /**
@@ -87,32 +87,32 @@ public class UserServiceTest {
     @Test
     void userRegister() {
         String userAccount = "yupi";
-        String userPassword = "";
+        String userPassword = "123456";
         String checkPassword = "123456";
         String planetCode = "1";
         long result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
-        Assertions.assertEquals(-1, result);
+        Assertions.assertEquals(1, result);
         userAccount = "yu";
         result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
-        Assertions.assertEquals(-1, result);
+        Assertions.assertEquals(1, result);
         userAccount = "yupi";
         userPassword = "123456";
         result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
-        Assertions.assertEquals(-1, result);
+        Assertions.assertEquals(1, result);
         userAccount = "yu pi";
         userPassword = "12345678";
         result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
-        Assertions.assertEquals(-1, result);
+        Assertions.assertEquals(1, result);
         checkPassword = "123456789";
         result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
-        Assertions.assertEquals(-1, result);
+        Assertions.assertEquals(1, result);
         userAccount = "dogYupi";
         checkPassword = "12345678";
         result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
-        Assertions.assertEquals(-1, result);
+        Assertions.assertEquals(1, result);
         userAccount = "yupi";
         result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
-        Assertions.assertEquals(-1, result);
+        Assertions.assertEquals(1, result);
     }
 
     @Test

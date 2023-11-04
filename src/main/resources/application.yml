@@ -2,6 +2,12 @@
 # @author <a href="https://github.com/liyupi">程序员鱼皮</a>
 # @from <a href="https://yupi.icu">编程导航知识星球</a>
 spring:
+
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+  profiles:
+    active: dev
   application:
     name: user-center-backend
   # DataSource Config
@@ -13,6 +19,7 @@ spring:
   # session 失效时间
   session:
     timeout: 86400
+
 server:
   port: 8080
   servlet:
