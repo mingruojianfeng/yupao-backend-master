@@ -15,7 +15,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2WebMvc;
 * */
 //@Configuration
 @EnableSwagger2WebMvc
-@Profile("prod")
+@Profile("dev")
 public class Knife4jConfig {
 
     @Bean(value = "dockerBean")

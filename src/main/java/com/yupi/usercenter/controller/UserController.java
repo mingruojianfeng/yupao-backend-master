@@ -10,6 +10,7 @@ import com.yupi.usercenter.model.domain.User;
 import com.yupi.usercenter.model.domain.request.UserLoginRequest;
 import com.yupi.usercenter.model.domain.request.UserRegisterRequest;
 import com.yupi.usercenter.service.UserService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +31,7 @@ import static com.yupi.usercenter.contant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
+@CrossOrigin(origins = {"http://localhost:3000"})
 public class UserController {
 
     @Resource
@@ -116,6 +118,12 @@ public class UserController {
 
     // https://yupi.icu/
 
+    /**查询用户
+     *
+     * @param username
+     * @param request
+     * @return
+     */
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         if (!isAdmin(request)) {
@@ -130,6 +138,12 @@ public class UserController {
         return ResultUtils.success(list);
     }
 
+    /**删除用户
+     *
+     * @param id
+     * @param request
+     * @return
+     */
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         if (!isAdmin(request)) {
@@ -157,4 +171,17 @@ public class UserController {
         return user != null && user.getUserRole() == ADMIN_ROLE;
     }
 
+    /**根据标签查询用户
+     *
+     * @param tagNameList
+     * @return
+     */
+    @GetMapping("/search/tags")
+    public BaseResponse<List<User>> searchUserByTags(@RequestParam(required = false) List<String> tagNameList){
+        if (CollectionUtils.isEmpty(tagNameList)){
+            throw new  BusinessException(ErrorCode.NULL_ERROR);
+        }
+        List<User> users = userService.searchUserByTags(tagNameList);
+        return ResultUtils.success(users);
+    }
 }
