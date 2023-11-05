@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.sun.org.apache.bcel.internal.generic.NEW;
 import com.yupi.usercenter.common.ErrorCode;
 import com.yupi.usercenter.exception.BusinessException;
 import com.yupi.usercenter.model.domain.User;
@@ -25,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.yupi.usercenter.contant.UserConstant.ADMIN_ROLE;
 import static com.yupi.usercenter.contant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -246,6 +248,79 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return true;
         }).map(this::getSafetyUser).collect(Collectors.toList());
     }
+
+
+    /**是否为管理员
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        // 仅管理员可查询
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
+        return user != null && user.getUserRole() == ADMIN_ROLE;
+    }
+
+    /**是否当前登录
+     *
+     * @param loginUser
+     * @return
+     */
+     @Override
+    public boolean isAdmin(User loginUser) {
+        return loginUser != null && loginUser.getUserRole() == ADMIN_ROLE;
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if (request == null){
+            return null;
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (userObj == null){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) userObj;
+    }
+
+    /**修改用户
+     *
+     * @param user 要修改信息的用户
+     * @param loginUser 登录用户
+     * @return
+     */
+    @Override
+    public Integer updateUser(User user, User loginUser) {
+        long userId = user.getId();
+        if (userId <= 0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        //仅管理员可以修改自己和别人的信息,自己仅可以修改自己的信息
+        if (isAdmin(loginUser)  && user.getId() != loginUser.getId()){
+          throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User oldUser = userMapper.selectById(user);
+        if (oldUser == null){
+           throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+
+        return userMapper.updateById(user);
+    }
+
+    @Override
+    public User getCurrentUser(HttpServletRequest request) {
+        if (request == null){
+            throw  new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        User user = (User)request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (user == null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        return user;
+    }
+
+
 }
 
-// [加入我们](https://yupi.icu) 从 0 到 1 项目实战，经验拉满！10+ 原创项目手把手教程、7 日项目提升训练营、1000+ 项目经验笔记、60+ 编程经验分享直播

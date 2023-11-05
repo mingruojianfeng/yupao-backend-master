@@ -60,4 +60,33 @@ public interface UserService extends IService<User> {
      * @return
      */
     List<User> searchUserByTags(List<String> tagNameList);
+
+
+
+     boolean isAdmin(HttpServletRequest request);
+
+     boolean isAdmin(User loginUser);
+
+    /**获取当前登录用户信息
+     *
+     * @param request
+     * @return
+     */
+     User getLoginUser(HttpServletRequest request);
+
+    /** 更新用户
+     *
+     * @param user
+     * @param loginUser
+     * @return
+     */
+    Integer updateUser(User user, User loginUser);
+
+    /**获取当前用户
+     *
+     * @param request
+     * @return
+     */
+    User getCurrentUser(HttpServletRequest request);
+
 }
